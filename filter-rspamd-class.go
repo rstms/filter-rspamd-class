@@ -147,14 +147,6 @@ func getClass(addresses []string, score float32) string {
 	return result
 }
 
-func txResetCb(timestamp time.Time, session filter.Session, messageId string) {
-	fmt.Fprintf(os.Stderr, "%s: %s: tx-reset: %s\n", timestamp, session, messageId)
-}
-
-func txBeginCb(timestamp time.Time, session filter.Session, messageId string) {
-	fmt.Fprintf(os.Stderr, "%s: %s: tx-begin: %s\n", timestamp, session, messageId)
-}
-
 func getSessionData(session filter.Session) (*SessionData, error) {
 	data := session.Get()
 	sessionData, ok := data.(*SessionData)
@@ -164,14 +156,41 @@ func getSessionData(session filter.Session) (*SessionData, error) {
 	return sessionData, nil
 }
 
+func clearSessionData(session filter.Session) error {
+	sessionData, err := getSessionData(session)
+	if err != nil {
+		return err
+	}
+	sessionData.rcptTo = []string{}
+	return nil
+}
+
+func txResetCb(timestamp time.Time, session filter.Session, messageId string) {
+	err := clearSessionData(session)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %s: tx-reset error: %v\n", timestamp, session, err)
+		return
+	}
+	//fmt.Fprintf(os.Stderr, "%s: %s: tx-reset: %s\n", timestamp, session, messageId)
+}
+
+func txBeginCb(timestamp time.Time, session filter.Session, messageId string) {
+	err := clearSessionData(session)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %s: tx-begin error: %v\n", timestamp, session, err)
+		return
+	}
+	//fmt.Fprintf(os.Stderr, "%s: %s: tx-begin: %s\n", timestamp, session, messageId)
+}
+
 func txRcptCb(timestamp time.Time, session filter.Session, messageId string, result string, to string) {
 	sessionData, err := getSessionData(session)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s: tx-rcpt: %v\n", timestamp, session, err)
+		fmt.Fprintf(os.Stderr, "%s: %s: tx-rcpt error: %v\n", timestamp, session, err)
 		return
 	}
 	sessionData.rcptTo = append(sessionData.rcptTo, to)
-	fmt.Fprintf(os.Stderr, "%s: %s: tx-rcpt: %s|%s|%s\n", timestamp, session, messageId, result, to)
+	//fmt.Fprintf(os.Stderr, "%s: %s: tx-rcpt: %s|%s|%s\n", timestamp, session, messageId, result, to)
 }
 
 func parseSpamScore(line string) (float32, error) {
@@ -201,14 +220,13 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 		}
 		class := getClass(sessionData.rcptTo, score)
 		output = append(output, "X-Spam-Class: "+class)
-		fmt.Fprintf(os.Stderr, "%s: %s: filter-data-line: %s\n", timestamp, session, line)
+		fmt.Fprintf(os.Stderr, "%s: %s: X-Spam-Class: %s\n", timestamp, session, class)
 	}
 	return output
 }
 
 func main() {
-
-	fmt.Fprintf(os.Stderr, "Version %s\n", Version)
+	fmt.Fprintf(os.Stderr, "Starting Version %s\n", Version)
 	err := initClassLevels(CLASS_CONFIG_FILE)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
