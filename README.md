@@ -1,11 +1,12 @@
 # filter-rspamd-class
 
-## purpose
-Use this filter in a filter chain after filter-rspamd to apply a keyword spam class to each message
+## Purpose
+Use this filter in an OpenSMTP filter chain after filter-rspamd to apply a `X-Spam-Class` keyword header to each message with a `X-Spam-Score` header.
+This produces an easily matched string field for use by downstream or client-side filter software.
 
-## operation
-Adds a header: 'X-Spam-Class: SPAMCLASS'
-based on threshold levels compared with rspamd's X-Spam-Score header
+## Operation
+The `X-Spam-Class` header value is based on class names and threshold levels from the configuration.
+The score value from the rspamd-generated `X-Spam-Score` is compared with the configuration classes to set the class value.
 
 Default class threshold levels:
 
@@ -17,13 +18,15 @@ probable    | 10	| POSSIBLE_THRESHOLD <= spam_score < PROBABLE_THRESHOLD
 spam	    | 999	| spam_score >= PROBABLE_THRESHOLD
 
 
-## configuration
-Class names and thresholds are configurable per recipient email address
+## Configuration
+The number of classes, class names, and thresholds are configurable for each recipient email address.
+
 If a config file does not exist, the defaults are used.
+If no match is found, the default class values will be used.
 
 When a config file is present, the first matching RCPT-TO address for a message
-is used to lookup the class values for that messages.
-If no match is found, the default class values will be used.
+is used to lookup the class values for that message.
+
 
 Configuration filename: `/etc/mail/filter_rspamd_classes.json`
 
