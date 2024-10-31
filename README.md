@@ -9,12 +9,12 @@ based on threshold levels compared with rspamd's X-Spam-Score header
 
 Default class threshold levels:
 
-Name        | Condition 
------------ | ----------------------------------------------------------
-ham	        | spam_score < HAM_THRESHOLD
-possible	| HAM_THRESHOLD <= spam_score < POSSIBLE_THRESHOLD
-probable	| POSSIBLE_THRESHOLD <= spam_score < PROBABLE_THRESHOLD
-spam		| spam_score >= PROBABLE_THRESHOLD
+Name	    | Threshold	| Condition 
+----------- | --------- | -----------------------------------------------------
+ham	    | 0		| spam_score < HAM_THRESHOLD
+possible    | 3		| HAM_THRESHOLD <= spam_score < POSSIBLE_THRESHOLD
+probable    | 10	| POSSIBLE_THRESHOLD <= spam_score < PROBABLE_THRESHOLD
+spam	    | 999	| spam_score >= PROBABLE_THRESHOLD
 
 
 ## configuration
