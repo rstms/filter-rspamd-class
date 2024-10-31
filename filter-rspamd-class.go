@@ -48,6 +48,8 @@ The final threshold value is set to float32-max automatically; 999 is a placehol
 
 *********************************************************************************************/
 
+const Version = "0.0.1"
+
 const CLASS_CONFIG_FILE = "/etc/mail/filter_rspamd_classes.json"
 
 const HAM_THRESHOLD = 0.0
@@ -206,6 +208,7 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 
 func main() {
 
+	fmt.Fprintf(os.Stderr, "Version %s\n", Version)
 	err := initClassLevels(CLASS_CONFIG_FILE)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
