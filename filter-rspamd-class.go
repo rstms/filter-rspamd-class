@@ -207,7 +207,7 @@ func parseSpamScore(line string) (float32, error) {
 
 func filterDataLineCb(timestamp time.Time, session filter.Session, line string) []string {
 	output := []string{line}
-	if strings.HasPrefix(line, "X-Spam-Score:") {
+	if strings.HasPrefix(line, "X-Spam-Score: ") {
 		sessionData, err := getSessionData(session)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s: %s: filter-data-line error: %v\n", timestamp, session, err)
