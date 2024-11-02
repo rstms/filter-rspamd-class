@@ -1,10 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
+	"github.com/rstms/filter-rspamd-class/classes"
 	"os"
 	"strconv"
 	"strings"
@@ -52,10 +51,6 @@ const Version = "0.0.9"
 
 const CLASS_CONFIG_FILE = "/etc/mail/filter_rspamd_classes.json"
 
-const HAM_THRESHOLD = 0.0
-const POSSIBLE_THRESHOLD = 3.0
-const PROBABLE_THRESHOLD = 10.0
-
 /*
 type tx struct {
 	msgid    string
@@ -83,69 +78,7 @@ type SessionData struct {
 	rcptTo []string
 }
 
-type SpamClass struct {
-	Name  string  `json:"name"`
-	Score float32 `json:"score"`
-}
-
-var SpamClassLevels map[string][]SpamClass
-
-func loadClassLevels(filename string) error {
-
-	if filename == "" {
-		return nil
-	}
-
-	_, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return nil
-	}
-	configBytes, err := os.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("failed reading %s: %v", filename, err)
-	}
-	levels := map[string][]SpamClass{}
-	err = json.Unmarshal(configBytes, &levels)
-	if err != nil {
-		return fmt.Errorf("failed parsing %s: %v", filename, err)
-	}
-	for addr, classes := range levels {
-		classes[len(classes)-1].Score = math.MaxFloat32
-		SpamClassLevels[addr] = classes
-	}
-	return nil
-}
-
-func initClassLevels(filename string) error {
-	SpamClassLevels = make(map[string][]SpamClass)
-	err := loadClassLevels(filename)
-	SpamClassLevels["default"] = []SpamClass{
-		SpamClass{"ham", HAM_THRESHOLD},
-		SpamClass{"possible", POSSIBLE_THRESHOLD},
-		SpamClass{"probable", PROBABLE_THRESHOLD},
-		SpamClass{"spam", math.MaxFloat32},
-	}
-	return err
-}
-
-func getClass(addresses []string, score float32) string {
-	levels := SpamClassLevels["default"]
-	for _, address := range addresses {
-		userLevels, ok := SpamClassLevels[address]
-		if ok {
-			levels = userLevels
-			break
-		}
-	}
-	var result string
-	for _, level := range levels {
-		result = level.Name
-		if score < level.Score {
-			break
-		}
-	}
-	return result
-}
+var SpamClasses *classes.SpamClasses
 
 func getSessionData(session filter.Session) (*SessionData, error) {
 	data := session.Get()
@@ -218,7 +151,7 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 			fmt.Fprintf(os.Stderr, "%s: %s: filter-data-line error: %v\n", timestamp, session, err)
 			return output
 		}
-		class := getClass(sessionData.rcptTo, score)
+		class := SpamClasses.GetClass(sessionData.rcptTo, score)
 		output = append(output, "X-Spam-Class: "+class)
 		fmt.Fprintf(os.Stderr, "%s: %s: X-Spam-Class: %s\n", timestamp, session, class)
 	}
@@ -227,7 +160,8 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 
 func main() {
 	fmt.Fprintf(os.Stderr, "Starting Version %s\n", Version)
-	err := initClassLevels(CLASS_CONFIG_FILE)
+	var err error
+	SpamClasses, err = classes.New(CLASS_CONFIG_FILE)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
 	}

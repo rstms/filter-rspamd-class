@@ -3,13 +3,13 @@
 filter = filter-rspamd-class
 
 fmt:
-	go fmt
+	fix go fmt . ./...
 
-build:
-	go build
+build: fmt
+	fix go build
 
 install: build
 	doas install -m 0555 $(filter) /usr/local/libexec/smtpd/$(filter) && doas rcctl restart smtpd
 
 test:
-	go test -v
+	fix -- go test -v . ./...
