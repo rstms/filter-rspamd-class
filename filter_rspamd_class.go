@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/rstms/filter-rspamd-class/classes"
+	"github.com/rstms/rspamd-classes/classes"
 	"os"
 	"strconv"
 	"strings"
@@ -161,11 +161,11 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 func main() {
 	fmt.Fprintf(os.Stderr, "Starting Version %s\n", Version)
 	var err error
+
 	SpamClasses, err = classes.New(CLASS_CONFIG_FILE)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
 	}
-
 	filter.Init()
 
 	filter.SMTP_IN.SessionAllocator(func() filter.SessionData {
