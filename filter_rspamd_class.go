@@ -161,7 +161,7 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 }
 
 func main() {
-	fmt.Fprintf(os.Stderr, "Starting Version %s\n", Version)
+	fmt.Fprintf(os.Stderr, "Starting %s v%s rspamd_classes=v%s uid=%d gid=%d\n", os.Args[0], Version, classes.Version, os.Getuid(), os.Getgid())
 	var err error
 
 	SpamClasses, err = classes.New(CLASS_CONFIG_FILE)
