@@ -166,7 +166,7 @@ func main() {
 
 	SpamClasses, err = classes.New(CLASS_CONFIG_FILE)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "config error: %v\n", err)
+		panic(fmt.Sprintf("SpamClasses: config error: %v\n", err))
 	}
 	filter.Init()
 
