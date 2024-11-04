@@ -152,8 +152,10 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 			return output
 		}
 		class := SpamClasses.GetClass(sessionData.rcptTo, score)
-		output = append(output, "X-Spam-Class: "+class)
-		fmt.Fprintf(os.Stderr, "%s: %s: X-Spam-Class: %s\n", timestamp, session, class)
+		if class != "" {
+			output = append(output, "X-Spam-Class: "+class)
+		}
+		fmt.Fprintf(os.Stderr, "%s: %s: X-Spam-Class: '%s'\n", timestamp, session, class)
 	}
 	return output
 }
