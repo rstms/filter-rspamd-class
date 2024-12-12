@@ -22,7 +22,7 @@ test:
 
 release:
 	@gitclean -v -d "git status is dirty"
-	echo gh release create v$(shell cat VERSION) --notes "v$(shell cat VERSION)"
+	gh release create v$(shell cat VERSION) --notes "v$(shell cat VERSION)"
 
 clean:
 	rm -f $(filter)
