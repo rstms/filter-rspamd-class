@@ -1,6 +1,7 @@
 # filter-rspamd-class  makefile
 
 filter = filter-rspamd-class
+latest_release != gh release list --json tagName --jq '.[0].tagName' | tr -d v
 
 build: fmt
 	fix go build
@@ -22,7 +23,8 @@ test:
 
 release:
 	@gitclean -v -d "git status is dirty"
-	gh release create v$(shell cat VERSION) --notes "v$(shell cat VERSION)"
+	echo latest_release=$(latest_release)
+	#gh release create v$(shell cat VERSION) --notes "v$(shell cat VERSION)"
 
 clean:
 	rm -f $(filter)
