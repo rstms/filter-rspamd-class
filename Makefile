@@ -21,7 +21,7 @@ test:
 	fix -- go test -v . ./...
 
 release:
-	$(if $(shell git status --porcelain),$(error git status dirty),)
+	@gitclean -v -d "git status is dirty"
 	echo gh release create v$(shell cat VERSION) --notes "v$(shell cat VERSION)"
 
 clean:
