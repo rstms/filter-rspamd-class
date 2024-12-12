@@ -21,7 +21,6 @@ test:
 	fix -- go test -v . ./...
 
 release:
-	bump
 	gh release create v$(shell cat VERSION) --notes "v$(shell cat VERSION)"
 
 clean:
