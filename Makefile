@@ -31,11 +31,8 @@ test:
 
 release:
 	@$(gitclean) || { [ -n "$(dirty)" ] && echo "allowing dirty release"; }
+	@$(if $(update),gh release delete -y v$(version),)
 	gh release create v$(version) --notes "v$(version)"
-
-unrelease: 
-	@gh release delete -y v$(version)
-
 
 clean:
 	rm -f $(program)
