@@ -1,10 +1,15 @@
 # go makefile
 
 program != basename $$(pwd)
+
 latest_release != gh release list --json tagName --jq '.[0].tagName' | tr -d v
 version != cat VERSION
+
+gitclean = if git status --porcelain | grep '^.*$$'; then echo git status is dirty; false; else echo git status is clean; true; fi
+
 install_dir = /usr/local/libexec/smtpd
 postinstall = && doas rcctl restart smtpd
+
 
 build: fmt
 	fix go build
@@ -25,10 +30,12 @@ test:
 	fix -- go test -v . ./...
 
 release:
-	@gitclean -v -d "git status is dirty"
-	echo latest_release=$(latest_release)
-	[ "$(latest_release)" != $(version) ] 
-	echo gh release create v$(shell cat VERSION) --notes "v$(shell cat VERSION)"
+	@$(gitclean) || [ -n "$(dirty)" ] && echo "allowing dirty release"
+	gh release create v$(version) --notes "v$(version)"
+
+unrelease: 
+	@gh release delete -y v$(version)
+
 
 clean:
 	rm -f $(program)
