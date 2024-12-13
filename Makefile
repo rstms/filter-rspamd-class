@@ -1,7 +1,10 @@
-# filter-rspamd-class  makefile
+# go makefile
 
-filter = filter-rspamd-class
+program != basename $$(pwd)
 latest_release != gh release list --json tagName --jq '.[0].tagName' | tr -d v
+version != cat VERSION
+install_dir = /usr/local/libexec/smtpd
+postinstall = && doas rcctl restart smtpd
 
 build: fmt
 	fix go build
@@ -16,7 +19,7 @@ go.sum: go.mod
 	go mod tidy
 
 install: build
-	doas install -m 0555 $(filter) /usr/local/libexec/smtpd/$(filter) && doas rcctl restart smtpd
+	doas install -m 0755 $(program) $(install_dir)/$(program) $(postinstall)
 
 test:
 	fix -- go test -v . ./...
@@ -24,10 +27,11 @@ test:
 release:
 	@gitclean -v -d "git status is dirty"
 	echo latest_release=$(latest_release)
-	#gh release create v$(shell cat VERSION) --notes "v$(shell cat VERSION)"
+	[ "$(latest_release)" != $(version) ] 
+	echo gh release create v$(shell cat VERSION) --notes "v$(shell cat VERSION)"
 
 clean:
-	rm -f $(filter)
+	rm -f $(program)
 	go clean
 
 sterile: clean
