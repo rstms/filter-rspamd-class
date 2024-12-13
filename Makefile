@@ -30,7 +30,7 @@ test:
 	fix -- go test -v . ./...
 
 release:
-	@$(gitclean) || [ -n "$(dirty)" ] && echo "allowing dirty release"
+	@$(gitclean) || { [ -n "$(dirty)" ] && echo "allowing dirty release"; }
 	gh release create v$(version) --notes "v$(version)"
 
 unrelease: 
