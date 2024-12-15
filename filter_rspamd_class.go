@@ -155,7 +155,7 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 		if class != "" {
 			output = append(output, "X-Spam-Class: "+class)
 		}
-		fmt.Fprintf(os.Stderr, "%s: %s: X-Spam-Class: '%s'\n", timestamp, session, class)
+		fmt.Fprintf(os.Stderr, "%s: %s: score=%v class='%s'\n", timestamp, session, score, class)
 	}
 	return output
 }
