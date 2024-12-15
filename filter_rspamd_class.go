@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/rstms/rspamd-classes/classes"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -78,8 +78,6 @@ type SessionData struct {
 	rcptTo []string
 }
 
-var SpamClasses *classes.SpamClasses
-
 func getSessionData(session filter.Session) (*SessionData, error) {
 	data := session.Get()
 	sessionData, ok := data.(*SessionData)
@@ -101,29 +99,29 @@ func clearSessionData(session filter.Session) error {
 func txResetCb(timestamp time.Time, session filter.Session, messageId string) {
 	err := clearSessionData(session)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s: tx-reset error: %v\n", timestamp, session, err)
+		log.Printf("%s: %s: tx-reset error: %v\n", timestamp, session, err)
 		return
 	}
-	//fmt.Fprintf(os.Stderr, "%s: %s: tx-reset: %s\n", timestamp, session, messageId)
+	//log.Printf("%s: %s: tx-reset: %s\n", timestamp, session, messageId)
 }
 
 func txBeginCb(timestamp time.Time, session filter.Session, messageId string) {
 	err := clearSessionData(session)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s: tx-begin error: %v\n", timestamp, session, err)
+		log.Printf("%s: %s: tx-begin error: %v\n", timestamp, session, err)
 		return
 	}
-	//fmt.Fprintf(os.Stderr, "%s: %s: tx-begin: %s\n", timestamp, session, messageId)
+	//log.Printf("%s: %s: tx-begin: %s\n", timestamp, session, messageId)
 }
 
 func txRcptCb(timestamp time.Time, session filter.Session, messageId string, result string, to string) {
 	sessionData, err := getSessionData(session)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s: tx-rcpt error: %v\n", timestamp, session, err)
+		log.Printf("%s: %s: tx-rcpt error: %v\n", timestamp, session, err)
 		return
 	}
 	sessionData.rcptTo = append(sessionData.rcptTo, to)
-	//fmt.Fprintf(os.Stderr, "%s: %s: tx-rcpt: %s|%s|%s\n", timestamp, session, messageId, result, to)
+	//log.Printf( "%s: %s: tx-rcpt: %s|%s|%s\n", timestamp, session, messageId, result, to)
 }
 
 func parseSpamScore(line string) (float32, error) {
@@ -143,31 +141,38 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 	if strings.HasPrefix(line, "X-Spam-Score: ") {
 		sessionData, err := getSessionData(session)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: %s: filter-data-line error: %v\n", timestamp, session, err)
+			log.Printf("%s: %s: filter-data-line error: %v\n", timestamp, session, err)
 			return output
 		}
 		score, err := parseSpamScore(line)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: %s: filter-data-line error: %v\n", timestamp, session, err)
+			log.Printf("%s: %s: filter-data-line error: %v\n", timestamp, session, err)
 			return output
 		}
-		class := SpamClasses.GetClass(sessionData.rcptTo, score)
+		class := readClasses().GetClass(sessionData.rcptTo, score)
 		if class != "" {
 			output = append(output, "X-Spam-Class: "+class)
 		}
-		fmt.Fprintf(os.Stderr, "%s: %s: score=%v class='%s'\n", timestamp, session, score, class)
+		log.Printf("%s: %s: score=%v class='%s'\n", timestamp, session, score, class)
 	}
 	return output
 }
 
-func main() {
-	fmt.Fprintf(os.Stderr, "Starting %s v%s rspamd_classes=v%s uid=%d gid=%d\n", os.Args[0], Version, classes.Version, os.Getuid(), os.Getgid())
-	var err error
-
-	SpamClasses, err = classes.New(CLASS_CONFIG_FILE)
+func readClasses() *classes.SpamClasses {
+	spamClasses, err := classes.New(CLASS_CONFIG_FILE)
 	if err != nil {
-		panic(fmt.Sprintf("SpamClasses: config error: %v\n", err))
+		log.Fatalf("SpamClasses: config error: %v\n", err)
 	}
+	return spamClasses
+}
+
+func main() {
+	log.SetFlags(0)
+	log.Printf("Starting %s v%s rspamd_classes=v%s uid=%d gid=%d\n", os.Args[0], Version, classes.Version, os.Getuid(), os.Getgid())
+
+	// read classes to report config error on startup
+	readClasses()
+
 	filter.Init()
 
 	filter.SMTP_IN.SessionAllocator(func() filter.SessionData {
