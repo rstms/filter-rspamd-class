@@ -39,7 +39,7 @@ clean:
 	go clean
 
 sterile: clean
-	go clean -r
+	go clean -r || true
 	go clean -cache
 	go clean -modcache
 	rm -f go.mod go.sum
