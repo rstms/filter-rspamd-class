@@ -138,6 +138,9 @@ func parseSpamScore(line string) (float32, error) {
 
 func filterDataLineCb(timestamp time.Time, session filter.Session, line string) []string {
 	output := []string{line}
+	if strings.HasPrefix(line, "X-Spam: ") {
+		return output
+	}
 	if strings.HasPrefix(line, "X-Spam-Score: ") {
 		sessionData, err := getSessionData(session)
 		if err != nil {
@@ -152,6 +155,11 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 		class := readClasses().GetClass(sessionData.rcptTo, score)
 		if class != "" {
 			output = append(output, "X-Spam-Class: "+class)
+		}
+		if class == "spam" {
+			output = append(output, "X-Spam: yes")
+		} else {
+			output = append(output, "X-Spam: no")
 		}
 		log.Printf("%s: %s: score=%v class='%s'\n", timestamp, session, score, class)
 	}
