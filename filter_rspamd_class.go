@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/rstms/rspamd-classes/classes"
 	"log"
 	"os"
@@ -154,7 +155,17 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 			log.Printf("%s: %s: filter-data-line error: %v\n", timestamp, session, err)
 			return output
 		}
-		class := readClasses().GetClass(sessionData.rcptTo, score)
+
+		name, domain, found := strings.Cut(sessionData.rcptTo[0], "@")
+		if !found {
+			log.Printf("%s: %s: filter-data-line error: '@' not found in rcptTo address: %v\n", timestamp, session, sessionData.rcptTo)
+		}
+
+		name, _, _ = strings.Cut(name, "+")
+
+		address := fmt.Sprintf("%s@%s", name, domain)
+
+		class := readClasses().GetClass([]string{address}, score)
 		if class != "" {
 			output = append(output, "X-Spam-Class: "+class)
 		}
@@ -164,7 +175,7 @@ func filterDataLineCb(timestamp time.Time, session filter.Session, line string) 
 		} else {
 			output = append(output, "X-Spam: no")
 		}
-		log.Printf("%s: %s: score=%v class='%s'\n", timestamp, session, score, class)
+		log.Printf("%s: %s: address=%s score=%v class='%s'\n", timestamp, session, address, score, class)
 	}
 	return output
 }
