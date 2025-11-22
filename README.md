@@ -1,8 +1,9 @@
 # filter-rspamd-class
 
-## Purpose
-Use this filter in an OpenSMTP filter chain after filter-rspamd to apply a `X-Spam-Class` keyword header to each message with a `X-Spam-Score` header.
-This produces an easily matched string field for use by downstream or client-side filter software.
+Use this filter in an OpenSMTP filter chain after filter-rspamd to apply an
+`X-Spam-Class` keyword header to each message with a `X-Spam-Score` header.
+This produces an easily matched string field for use by downstream or
+client-side filter software.
 
 ## Operation
 The `X-Spam-Class` header value is based on class names and threshold levels from the configuration.
