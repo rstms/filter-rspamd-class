@@ -1,2 +1,2 @@
 @dir usr/local/libexec/smtpd
-@bin bin/filter-rspamd-class
+@bin filter-rspamd-class
