@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/rstms/rspamd-classes/classes"
+	flag "github.com/spf13/pflag"
 	"log"
 	"os"
 	"strconv"
@@ -189,6 +190,22 @@ func readClasses() *classes.SpamClasses {
 }
 
 func main() {
+
+	versionFlag := flag.Bool("version", false, "output version")
+	helpFlag := flag.Bool("help", false, "show help")
+
+	flag.Parse()
+
+	if *helpFlag {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	if *versionFlag {
+		fmt.Printf("filter-rspamd-class version %s\n", Version)
+		os.Exit(0)
+	}
+
 	log.SetFlags(0)
 	log.Printf("Starting %s v%s rspamd_classes=v%s uid=%d gid=%d\n", os.Args[0], Version, classes.Version, os.Getuid(), os.Getgid())
 

@@ -5,6 +5,7 @@ go 1.25.4
 require (
 	github.com/poolpOrg/OpenSMTPD-framework v0.1.9
 	github.com/rstms/rspamd-classes v1.0.3
+	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
 )
 
