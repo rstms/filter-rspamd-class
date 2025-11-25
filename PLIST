@@ -1,4 +1,1 @@
 @bin bin/filter-rspamd-class
-@dir libexec/smtpd
-@exec ln -s %F libexec/smtpd/%f
-@unexec ln libexec/smtpd/%f
